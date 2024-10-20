@@ -1,0 +1,67 @@
+body{
+    background: none;
+    color: white;
+    padding: 0;
+    margin: 0;
+    border-radius: 0px;
+    border: 1px solid black;
+}
+
+.appRoot {
+    width: 40em;
+    height: auto;
+    background-color: darkslategray;
+    padding: 1em;
+}
+
+.listBtnContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-bottom: 1em;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li a {
+    margin: 0;
+    padding: 0.5em;
+    text-align: start;
+    color: white;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.ListRoot div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.ListRoot:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.ListRoot div button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 20;
+    border-radius: 5px;
+}
+
+.ListRoot div button:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.listBtnContainer{
+    padding-top: 1em;
+}
