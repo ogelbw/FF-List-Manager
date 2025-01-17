@@ -5,43 +5,60 @@ import {
   ArrowUp,
   ArrowDown,
   Delete,
-  Edit
+  Edit,
+  Burger
 } from './svg_element';
 
 /**
  * @param { { display_name: string, url: string } } props
  * @returns {JSX.Element}
  * */
-function ListElement({ display_name, url, list, setList }) {
+function ListElement(
+{
+  display_name,
+  url,
+  setList,
+  list,
+  setKeyboardControlledId,
+  keyboardControlledId
+}) {
+
+  const [ElementID, setId] = React.useState(null);
+
+  /** The idex of the element is used as the id here */
+  React.useEffect(() => { setId(list.findIndex((list) => list.url === url)) }, [list]);
   return (
     <li className="ListRoot" key={url}>
-      <div>
+      <div className={(ElementID === keyboardControlledId)? 'highlighted' : ''}>
         <a href={url}> {display_name} </a>
         <div>
           <button onClick={() => {
-            // get the index of the element in the list
-            let index = list.findIndex((list) => list.url === url);
+            if (keyboardControlledId === ElementID) {
+              setKeyboardControlledId(null);
+            }
+            else {
+              setKeyboardControlledId(ElementID);
+            }
+          }}> <Burger /> </button>
 
+          <button onClick={() => {
             // if the index is not the first element
-            if (index > 0) {
+            if (ElementID > 0) {
               // swap the current element with the previous element
-              let temp = list[index];
-              list[index] = list[index - 1];
-              list[index - 1] = temp;
+              let temp = list[ElementID];
+              list[ElementID] = list[ElementID - 1];
+              list[ElementID - 1] = temp;
               setList([...list]);
             }
           }}> <ArrowUp /> </button>
 
           <button onClick={() => {
-            // get the index of the element in the list
-            let index = list.findIndex((list) => list.url === url);
-
             // if the index is not the last element
-            if (index < list.length - 1) {
+            if (ElementID < list.length - 1) {
               // swap the current element with the next element
-              let temp = list[index];
-              list[index] = list[index + 1];
-              list[index + 1] = temp;
+              let temp = list[ElementID];
+              list[ElementID] = list[ElementID + 1];
+              list[ElementID + 1] = temp;
               setList([...list]);
             }
           }}> <ArrowDown /> </button>
@@ -67,21 +84,49 @@ function ListElement({ display_name, url, list, setList }) {
   );
 }
 
+function jsonListimport(jsonImportData, setList) {
+  // check if the json is a list of pairs of strings
+  if (jsonImportData && jsonImportData.length > 0) {
+    let valid = jsonImportData.every((item) => {
+      return item.display_name && item.url;
+    });
+
+    if (valid) {
+      setList([...jsonImportData]);
+    } else {
+      alert("Invalid JSON, no changes made");
+    }
+  } else {
+    alert("Invalid JSON, no changes made");
+  }
+}
+
 /**
  * @param { { 
  * list: {display_name: string, url: string}[],
- * setList: (newList: {display_name: string, url: string}[]) => void } } props
+ * setList: (newList: {display_name: string, url: string}[]) => void
+ * setKeyboardControlledId: (id: number | null) => void
+ * keyboardControlledId: number | null
+ * } } props,
  * @returns {JSX.Element}
 */
-function ListDisplay({ list: list, setList: setList }) {
+function ListDisplay({ 
+  list: list, 
+  setList: setList, 
+  setKeyboardControlledId: setKeyboardControlledId,
+  keyboardControlledId }) {
   return <>
     <ul>
-      {list.map((listId) => (
+      {list.map((listItem) => (
         <ListElement
-          display_name={listId.display_name}
-          url={listId.url}
+        key={listItem.url}
+          display_name={listItem.display_name}
+          url={listItem.url}
           list={list}
-          setList={setList} />
+          setList={setList}
+          setKeyboardControlledId={setKeyboardControlledId}
+          keyboardControlledId={keyboardControlledId}
+          />
       ))}
     </ul>
 
@@ -108,6 +153,27 @@ function ListDisplay({ list: list, setList: setList }) {
         }
       }}> Delete List </button>
 
+        <button className="listBtn" onClick={() => {
+          let jsonImport_s = prompt("Enter the JSON sting to import");
+          if (jsonImport_s) {
+            try {
+              let jsonImport = JSON.parse(jsonImport_s);
+              jsonListimport(jsonImport, setList);
+            } catch (error) {
+              console.error("Error parsing JSON", error);
+            }
+          }
+          else {
+            alert("Invalid list name, no changes made");
+          }
+        }}> Import List </button>
+
+      <button className="listBtn" onClick={() => {
+        let jsonExport = JSON.stringify(list);
+        navigator.clipboard.writeText(jsonExport).then(() => {
+          alert("List copied to clipboard");
+        });
+      }}> Export List </button>
     </div>
   </>;
 }
@@ -119,12 +185,15 @@ function Popup() {
    */
   const [list, setList] = React.useState([]);
   const [url, setUrl] = React.useState("List Manager");
+  const [keyboardControlledId, setKeyboardControlledId] = React.useState(null);
+
 
   /** Get the list for the current url from the (firefox) browser storage */
   React.useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       browser.tabs.sendMessage(tabs[0].id, { action: "getURL" })
         .then((response) => {
+
           if (response.url) {
             let domain = new URL(response.url).hostname;
             setUrl(domain);
@@ -139,12 +208,39 @@ function Popup() {
             setUrl("No URL found");
             setList([]);
           }
-        })
-        .catch((error) => {
+
+        }).catch((error) => {
           console.error("Error getting url", error);
         });
     });
   }, []);
+
+  /** Keyboard shift controls, react make a new func ref everytime one of the 
+   * deps changes */
+  const handleKeyDown = React.useCallback((event) => {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    let delta = event.key === "ArrowUp" ? -1 : 1;
+  
+    if (delta === -1 && keyboardControlledId <= 0) return;
+    if (delta === 1 && keyboardControlledId >= list.length - 1) return;
+  
+    const temp = list[keyboardControlledId];
+    list[keyboardControlledId] = list[keyboardControlledId + delta];
+    list[keyboardControlledId + delta] = temp;
+    setList([...list]);
+    setKeyboardControlledId(keyboardControlledId + delta);
+  }, [keyboardControlledId, list, setList]);
+  
+  // adding and removing the event listener for the arrow keys
+  React.useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+
+    // magic cleanup
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+  
 
   /** When the list get updated save the list in storage with the domain */
   React.useEffect(() => {
@@ -154,11 +250,16 @@ function Popup() {
       }
     })
   }, [list]);
+
   return (
     <div className="appRoot">
       <h4> {url} </h4>
       <ul>
-        <ListDisplay list={list} setList={setList} />
+        <ListDisplay
+        list={list}
+        setList={setList}
+        setKeyboardControlledId={setKeyboardControlledId}
+        keyboardControlledId={keyboardControlledId}/>
       </ul>
     </div>
   );
