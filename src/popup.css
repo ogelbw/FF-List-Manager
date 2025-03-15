@@ -70,3 +70,7 @@ li a {
     background-color: rgba(0, 0, 0, 0.3);
     border: 2.5px, solid, rgb(255, 115, 0) !important;
 }
+
+.checked {
+    background-color: rgba(0, 0, 0, 0.1);
+}

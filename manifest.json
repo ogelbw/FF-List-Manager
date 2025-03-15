@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "List Manager",
-    "version": "2.1",
+    "version": "4",
     "description": "A simple Firefox extension to save and manage lists.",
     "permissions": [
       "storage"

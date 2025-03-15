@@ -6,7 +6,8 @@ import {
   ArrowDown,
   Delete,
   Edit,
-  Burger
+  Burger,
+  Check
 } from './svg_element';
 
 /**
@@ -20,18 +21,26 @@ function ListElement(
   setList,
   list,
   setKeyboardControlledId,
-  keyboardControlledId
+  keyboardControlledId,
+  checked
 }) {
 
   const [ElementID, setId] = React.useState(null);
 
   /** The idex of the element is used as the id here */
   React.useEffect(() => { setId(list.findIndex((list) => list.url === url)) }, [list]);
+  let className =  checked ? 'checked' : '';
+  className += (ElementID === keyboardControlledId) ? ' highlighted' : '';
   return (
     <li className="ListRoot" key={url}>
-      <div className={(ElementID === keyboardControlledId)? 'highlighted' : ''}>
+      <div className={className}>
         <a href={url}> {display_name} </a>
         <div>
+          <button onClick={() => {
+            list[ElementID].checked = !checked;
+            setList([...list]);
+          }}> <Check checked={checked} /> </button>
+
           <button onClick={() => {
             if (keyboardControlledId === ElementID) {
               setKeyboardControlledId(null);
@@ -126,6 +135,7 @@ function ListDisplay({
           setList={setList}
           setKeyboardControlledId={setKeyboardControlledId}
           keyboardControlledId={keyboardControlledId}
+          checked={listItem.checked || false}
           />
       ))}
     </ul>
