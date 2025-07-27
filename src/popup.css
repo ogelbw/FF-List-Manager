@@ -38,6 +38,16 @@ li a {
     font-style: normal;
 }
 
+h4 {
+    text-align: start;
+    color: white;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-style: bold;
+    font-size: x-large;
+}
+
 .ListRoot div {
     display: flex;
     flex-direction: row;
@@ -73,4 +83,63 @@ li a {
 
 .checked {
     background-color: rgba(0, 0, 0, 0.1);
+}
+
+.oldListExporter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1em;
+}
+
+.oldListExporter input {
+    flex: 1;
+    padding: 0.5em 1em;
+    margin-right: 0.5em;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.oldListExporter button {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+}
+
+.oldListExporter div {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    text-align: start;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+    font-style: normal;
+}
+
+.listBtn {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+}
+
+button {
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+}
+button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+
 }

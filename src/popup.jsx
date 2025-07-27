@@ -111,6 +111,40 @@ function jsonListimport(jsonImportData, setList) {
 }
 
 /**
+ * @returns {JSX.Element}
+ * @description Sometimes websites change domain names so this form will allow 
+ * the user to input a domain name and copy the json list to the clipboard.
+ */
+function OldListExporter() {
+  // horizontal form to input a domain name and a button to copy the list to the
+  // clipboard
+  return (
+    <div className="oldListExporter">
+      <div>Export an old Domain:</div>
+      <input type="text" id="domainInput" placeholder="Enter domain name" />
+      <button onClick={() => {
+        const domain = document.getElementById("domainInput").value;
+        if (domain) {
+          browser.storage.local.get(domain).then((result) => {
+            if (result && result[domain]) {
+              const jsonExport = JSON.stringify(result[domain]);
+              navigator.clipboard.writeText(jsonExport).then(() => {
+                alert("List copied to clipboard");
+              });
+            } else {
+              alert("No list found for this domain");
+            }
+          });
+        } else {
+          alert("Please enter a valid domain name");
+        }
+      }
+      }> Export List </button>
+    </div>
+  );
+}
+
+/**
  * @param { { 
  * list: {display_name: string, url: string}[],
  * setList: (newList: {display_name: string, url: string}[]) => void
@@ -265,6 +299,7 @@ function Popup() {
     <div className="appRoot">
       <h4> {url} </h4>
       <ul>
+        <OldListExporter />
         <ListDisplay
         list={list}
         setList={setList}
