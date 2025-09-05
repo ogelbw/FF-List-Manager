@@ -15,21 +15,21 @@ import {
  * @returns {JSX.Element}
  * */
 function ListElement(
-{
-  display_name,
-  url,
-  setList,
-  list,
-  setKeyboardControlledId,
-  keyboardControlledId,
-  checked
-}) {
+  {
+    display_name,
+    url,
+    setList,
+    list,
+    setKeyboardControlledId,
+    keyboardControlledId,
+    checked
+  }) {
 
   const [ElementID, setId] = React.useState(null);
 
   /** The idex of the element is used as the id here */
   React.useEffect(() => { setId(list.findIndex((list) => list.url === url)) }, [list]);
-  let className =  checked ? 'checked' : '';
+  let className = checked ? 'checked' : '';
   className += (ElementID === keyboardControlledId) ? ' highlighted' : '';
   return (
     <li className="ListRoot" key={url}>
@@ -153,16 +153,17 @@ function OldListExporter() {
  * } } props,
  * @returns {JSX.Element}
 */
-function ListDisplay({ 
-  list: list, 
-  setList: setList, 
+function ListDisplay({
+  list: list,
+  setList: setList,
   setKeyboardControlledId: setKeyboardControlledId,
-  keyboardControlledId }) {
+  keyboardControlledId
+}) {
   return <>
     <ul>
       {list.map((listItem) => (
         <ListElement
-        key={listItem.url}
+          key={listItem.url}
           display_name={listItem.display_name}
           url={listItem.url}
           list={list}
@@ -170,7 +171,7 @@ function ListDisplay({
           setKeyboardControlledId={setKeyboardControlledId}
           keyboardControlledId={keyboardControlledId}
           checked={listItem.checked || false}
-          />
+        />
       ))}
     </ul>
 
@@ -197,20 +198,20 @@ function ListDisplay({
         }
       }}> Delete List </button>
 
-        <button className="listBtn" onClick={() => {
-          let jsonImport_s = prompt("Enter the JSON sting to import");
-          if (jsonImport_s) {
-            try {
-              let jsonImport = JSON.parse(jsonImport_s);
-              jsonListimport(jsonImport, setList);
-            } catch (error) {
-              console.error("Error parsing JSON", error);
-            }
+      <button className="listBtn" onClick={() => {
+        let jsonImport_s = prompt("Enter the JSON sting to import");
+        if (jsonImport_s) {
+          try {
+            let jsonImport = JSON.parse(jsonImport_s);
+            jsonListimport(jsonImport, setList);
+          } catch (error) {
+            console.error("Error parsing JSON", error);
           }
-          else {
-            alert("Invalid list name, no changes made");
-          }
-        }}> Import List </button>
+        }
+        else {
+          alert("Invalid list name, no changes made");
+        }
+      }}> Import List </button>
 
       <button className="listBtn" onClick={() => {
         let jsonExport = JSON.stringify(list);
@@ -218,6 +219,49 @@ function ListDisplay({
           alert("List copied to clipboard");
         });
       }}> Export List </button>
+      <button className="listBtn" onClick={() => {
+        let accountList = [];
+        try {
+          browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            browser.tabs.sendMessage(tabs[0].id, { action: "getURL" })
+              .then((response) => {
+                if (response.url) {
+                  let active_url = new URL(response.url).hostname;
+                  browser.storage.sync.get(active_url).then((result) => {
+                    if (result && Object.keys(result[active_url]).length > 0) {
+                      console.log("Merging lists", list.length, result[active_url].length);
+                      setList(mergeListsByUrl(list, result[active_url]));
+                    }
+                  });
+                }
+              })
+          })
+        } catch (error) {
+          alert("Could not pull the list from firefox account");
+          console.error("Error pulling list from firefox account", error);
+        }
+      }}> Pull List </button>
+      <button className="listBtn" onClick={() => {
+        let accountList = [];
+        try {
+          browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            browser.tabs.sendMessage(tabs[0].id, { action: "getURL" })
+              .then((response) => {
+                if (response.url) {
+                  let url = new URL(response.url).hostname;
+                  try {
+                    browser.storage.sync.set({ [url]: list });
+                  } catch (error) {
+                    alert("Could not sync the list with firefox account");
+                  }
+                }
+              })
+          })
+        } catch (error) {
+          alert("Could not pull the list from firefox account");
+          console.error("Error pulling list from firefox account", error);
+        }
+      }}> Push List </button>
     </div>
   </>;
 }
@@ -237,7 +281,6 @@ function Popup() {
     browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       browser.tabs.sendMessage(tabs[0].id, { action: "getURL" })
         .then((response) => {
-
           if (response.url) {
             let domain = new URL(response.url).hostname;
             setUrl(domain);
@@ -264,17 +307,17 @@ function Popup() {
   const handleKeyDown = React.useCallback((event) => {
     if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
     let delta = event.key === "ArrowUp" ? -1 : 1;
-  
+
     if (delta === -1 && keyboardControlledId <= 0) return;
     if (delta === 1 && keyboardControlledId >= list.length - 1) return;
-  
+
     const temp = list[keyboardControlledId];
     list[keyboardControlledId] = list[keyboardControlledId + delta];
     list[keyboardControlledId + delta] = temp;
     setList([...list]);
     setKeyboardControlledId(keyboardControlledId + delta);
   }, [keyboardControlledId, list, setList]);
-  
+
   // adding and removing the event listener for the arrow keys
   React.useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -284,7 +327,7 @@ function Popup() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown]);
-  
+
 
   /** When the list get updated save the list in storage with the domain */
   React.useEffect(() => {
@@ -292,7 +335,7 @@ function Popup() {
       if (url !== "List Manager") {
         browser.storage.local.set({ [url]: list });
       }
-    })
+    });
   }, [list]);
 
   return (
@@ -301,13 +344,24 @@ function Popup() {
       <ul>
         <OldListExporter />
         <ListDisplay
-        list={list}
-        setList={setList}
-        setKeyboardControlledId={setKeyboardControlledId}
-        keyboardControlledId={keyboardControlledId}/>
+          list={list}
+          setList={setList}
+          setKeyboardControlledId={setKeyboardControlledId}
+          keyboardControlledId={keyboardControlledId} />
       </ul>
     </div>
   );
+}
+
+function mergeListsByUrl(listA, listB) {
+  const map = new Map();
+  for (const item of listA) {
+    map.set(item.url, item);
+  }
+  for (const item of listB) {
+    map.set(item.url, item);
+  }
+  return Array.from(map.values());
 }
 
 const root = createRoot(document.getElementById('root'));
