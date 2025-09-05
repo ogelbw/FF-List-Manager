@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Extension",
+      "type": "shell",
+      "command": "npm run build", 
+      "group": "build",
+      "problemMatcher": []
+    },
+	{
+      "label": "npm install",
+      "type": "shell",
+      "command": "npm install", 
+      "problemMatcher": []
+    },
+    {
+      "label": "Zip Extension",
+      "type": "shell",
+      "command": "zip -r build.zip ./dist/* ./icons/* ./manifest.json",
+      "problemMatcher": []
+    },
+	{
+      "label": "Zip Extension (src)",
+      "type": "shell",
+      "command": "zip -r build_src.zip ./dist/* ./icons/* ./manifest.json ./src/* ./webpack.config.js ./readme.md ./package.json",
+      "problemMatcher": []
+    }
+  ]
+}
